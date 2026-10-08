@@ -199,5 +199,5 @@ For gradient changes, the hardcoded values are in lines 22-28 in `gradients_clea
 
 ## Citation
 
-If you use this code, cite the accompanying paper. The final BibTeX entry can
-be added here when the publication metadata is available.
+If you use this code in your research, please cite our work:
+
