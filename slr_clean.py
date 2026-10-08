@@ -298,16 +298,12 @@ def scenario_configs(scenario: str):
     from scenarios.on_manifold_comparison_schedule import get_configs as on_manifold_comparison_schedule
     from scenarios.not_manifold_original import get_configs as not_manifold_original
     from scenarios.softmax_original import get_configs as softmax_original
-    from scenarios.on_manifold_large import get_configs as on_manifold_large
-    from scenarios.not_manifold_large import get_configs as not_manifold_large
 
     registry = {
         "on_manifold_original": on_manifold_original,
         "on_manifold_comparison_schedule": on_manifold_comparison_schedule,
         "not_manifold_original": not_manifold_original,
         "softmax_original": softmax_original,
-        "on_manifold_large": on_manifold_large,
-        "not_manifold_large": not_manifold_large,
     }
 
     selected = list(registry.keys()) if scenario == "all" else [scenario]
@@ -323,7 +319,7 @@ def main():
     parser = argparse.ArgumentParser(description="Single-file T-model experiments and plots")
     parser.add_argument(
         "--scenario",
-        choices=["on_manifold_original", "on_manifold_comparison_schedule", "not_manifold_original", "softmax_original", "on_manifold_large", "not_manifold_large", "all"],
+        choices=["on_manifold_original", "on_manifold_comparison_schedule", "not_manifold_original", "softmax_original", "all"],
         default="all",
         help="Only CLI argument: selects which hardcoded scenario(s) to run.",
     )
