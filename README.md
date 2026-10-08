@@ -1,4 +1,4 @@
-# Supplemental material: SLR + Gradient Experiments
+# Single Location Regression + Gradient Experiments
 
 This folder contains an implementation of the experiments conducted in the main section of the paper.
 
