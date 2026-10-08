@@ -1,0 +1,188 @@
+# Supplemental material: SLR + Gradient Experiments
+
+This folder contains an implementation of the experiments conducted in the main section of the paper.
+
+### TLDR for reproducing the results
+
+Run `python slr_clean.py --scenario all` and `python gradients_clean.py`. The resulting figures will be saved in `figures/`. This should take about 4.5 hours on a laptop. For shorter verifications, read below.
+
+
+## Folder overview
+
+```text
+neurips_clean/
+├─ gradients_clean.py
+├─ slr_clean.py
+├─ plotting_aids.py
+├─ scenarios/
+│  ├─ SCENARIOS.md
+│  ├─ on_manifold_original.py
+│  ├─ not_manifold_original.py
+│  ├─ softmax_original.py
+│  └─ on_manifold_comparison_schedule.py
+├─ results/
+├─ figures/
+└─ README.md
+```
+
+### Core files
+
+- `slr_clean.py`
+  - Defines the SLR models and runs full trainings across many random seeds in parallel.
+  - Loads scenarios through `scenario_configs()` defined in `slr_clean.py`.
+  - Saves a pickle with all trajectories and summary stats under ```results/```.
+  - Produces per-scenario plots in ```figures/```.
+
+- `gradients_clean.py`
+  - Runs a fixed gradient-field setup (single hardcoded scenario).
+  - Produces two output images:
+    - `figures/gradients_kappa.png`
+    - `figures/gradients_nu.png`
+
+- `plotting_aids.py`
+  - Centralized plotting helpers used by the `slr_clean.py` and `gradients_clean.py`.
+
+- `scenarios/*.py`
+  - Parameter definitions for each experiment setting.
+  - Imported directly by `scenario_configs()` in `slr_clean.py`.
+
+- `scenarios/SCENARIOS.md`
+  - Reference for scenario config fields and their meaning.
+
+### Models: `TErf` and `TSoftmax`
+
+- `TErf`
+  - The main erf-attention SLR model used in the non-softmax experiments.
+  - Uses `erf`-based row/column attention with trainable vectors `k` and `v` on the sphere.
+  - Encapsulates the PGD step logic.
+
+- `TSoftmax`
+  - Softmax-attention variant used for the softmax scenario.
+  - Replaces `erf` attention with standard softmax row/column attention, while keeping the same data-generation and optimization structure.
+
+---
+
+## How scenarios work
+
+`slr_clean.py` executes scenario(s) selected by the CLI argument `--scenario`.
+
+A scenario dictionary can define:
+- model/data params (`lr`, `lc`, `N`, `ell`, etc.)
+- optimization params (`use_penalty`, `num_iterations`, etc.)
+- initialization/distribution settings (`init_dist`, `softmax`, etc.)
+- lambda configuration (`lambda_r0`, `lambda_c0`, `lambda_increment`, etc.)
+
+### Schedule behavior
+
+There are two lambda update modes in training:
+
+1. **Decay mode** (used when `lambda_increment > 0`):
+   - Lambda stays flat before the switch point.
+   - After switch, it decays as in the paper, using `lambda_increment` as a decay step.
+
+2. **Hard-step switch** (when increment is absent or non-positive):
+   - Lambdas switch from 0.1 to `lambda_r`, `lambda_c` at the switch point.
+
+
+---
+
+## Running experiments
+
+From this folder (`supplemental_material`), run:
+
+- SLR run:
+  - `python slr_clean.py --scenario all`
+
+- Gradient plots:
+  - `python gradients_clean.py`
+
+### Selecting which scenario to run
+
+`slr_clean.py` takes a CLI argument: `--scenario`.
+
+Use one of:
+- `on_manifold_original`
+- `not_manifold_original`
+- `softmax_original`
+- `on_manifold_comparison_schedule`
+- `all` (runs all scenarios; this is the default)
+
+Examples:
+- `python slr_clean.py --scenario on_manifold_original`
+- `python slr_clean.py --scenario not_manifold_original`
+- `python slr_clean.py --scenario softmax_original`
+- `python slr_clean.py --scenario on_manifold_comparison_schedule`
+- `python slr_clean.py --scenario all`
+
+---
+
+## Outputs
+
+All outputs are saved relative to this folder (not the caller’s shell cwd).
+
+### Results
+
+- `results/<scenario_name>.pkl`
+
+Each pickle includes (scenario-dependent):
+- configuration used,
+- per-seed trajectories (loss, alignment, manifold distance, lambda path),
+
+### Figures
+
+Per run/scenario:
+- `figures/<scenario_name>/loss/...`
+- `figures/<scenario_name>/alignment/...`
+- `figures/<scenario_name>/manifold_distance/...`
+- `figures/<scenario_name>/lambdas/...`
+
+Schedule-comparison scenario additionally writes:
+- **loss comparison** (across lambda choices)
+- **alignment-only comparison** (across lambda choices)
+
+The gradient script writes deterministic files:
+- `figures/gradients_kappa.png`
+- `figures/gradients_nu.png`
+
+---
+
+## Notes on reproducibility and runtime
+
+- Multi-seed training is parallelized with a process pool.
+- `slr_clean.py` prints seed list and progress logs.
+- Seed completion order may differ from seed numeric order due to parallel scheduling.
+- Worker count is currently set in code (`workers = 20` in `main()`).
+  - Reduce this if your machine is memory/CPU constrained.
+  - On a MacBook Pro M1, a single scenario takes about 45 minutes to run.
+
+---
+
+## Scenario guidance
+
+- `on_manifold_original`
+  - Original on-manifold setting (Figure 3 in the paper).
+
+- `not_manifold_original`
+  - Off-manifold setting; (Figure 5 (a) in the paper).
+
+- `softmax_original`
+  - Softmax variant; also uses incremental lambda schedule support (Figure 5 (b) in the paper).
+
+- `on_manifold_comparison_schedule`
+  - Sweep over scenario-defined `lambdas` (currently configured in that file).
+  - Produces side-by-side schedule comparison plots, including alignment-only.
+  - Reproduces the alignment plots in Figure 4 in the paper
+
+---
+
+## Minimal extension checklist
+
+If you wish to add a new scenario:
+1. Read `scenarios/SCENARIOS.md`
+2. Add a new `scenarios/<name>.py` returning a dict.
+3. Add its import and registry entry in `scenario_configs()` inside `slr_clean.py`.
+4. Run `python slr_clean.py --scenario <name>` and verify:
+   - pickle saved under `results/`
+   - expected plots under `figures/<name>/`
+
+For gradient changes, the hardcoded values are in lines 22-28 in `gradients_clean.py`.
