@@ -202,11 +202,11 @@ For gradient changes, the hardcoded values are in lines 22-28 in `gradients_clea
 If you use this code in your research, please cite our work:
 ```
 @inproceedings{
-pantea2026understanding,
-title={Understanding axial attention in {TSFM}s through single location regression},
-author={Andrei-Tiberiu Pantea and Aymeric Dieuleveut},
-booktitle={The Fortieth Annual Conference on Neural Information Processing Systems},
-year={2026},
-url={https://openreview.net/forum?id=NCYlMi9USZ}
+  pantea2026understanding,
+  title={Understanding axial attention in {TSFM}s through single location regression},
+  author={Andrei-Tiberiu Pantea and Aymeric Dieuleveut},
+  booktitle={The Fortieth Annual Conference on Neural Information Processing Systems},
+  year={2026},
+  url={https://openreview.net/forum?id=NCYlMi9USZ}
 }
 ```
